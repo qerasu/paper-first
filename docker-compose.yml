@@ -1,0 +1,84 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: paperfirst
+      POSTGRES_USER: paperfirst
+      POSTGRES_PASSWORD: paperfirst
+    ports:
+      - "5432:5432"
+    volumes:
+      - paperfirst_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U paperfirst -d paperfirst"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+    environment:
+      PAPERFIRST_ENVIRONMENT: local
+      PAPERFIRST_DATABASE_URL: postgresql+asyncpg://paperfirst:paperfirst@postgres:5432/paperfirst
+      PAPERFIRST_REDIS_URL: redis://redis:6379/0
+      PAPERFIRST_TELEGRAM_WEB_APP_URL: ${PAPERFIRST_TELEGRAM_WEB_APP_URL:-http://localhost:5173}
+      PAPERFIRST_BACKEND_CORS_ORIGINS: '${PAPERFIRST_BACKEND_CORS_ORIGINS:-["http://localhost:5173"]}'
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./backend
+    command: ["python", "-m", "paperfirst.worker.main"]
+    environment:
+      PAPERFIRST_ENVIRONMENT: local
+      PAPERFIRST_DATABASE_URL: postgresql+asyncpg://paperfirst:paperfirst@postgres:5432/paperfirst
+      PAPERFIRST_REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  bot:
+    build:
+      context: ./backend
+    command: ["python", "-m", "paperfirst.bot.main"]
+    profiles:
+      - bot
+    environment:
+      PAPERFIRST_ENVIRONMENT: local
+      PAPERFIRST_REDIS_URL: redis://redis:6379/0
+      PAPERFIRST_TELEGRAM_BOT_TOKEN: ${PAPERFIRST_TELEGRAM_BOT_TOKEN:-}
+      PAPERFIRST_TELEGRAM_BOT_USERNAME: ${PAPERFIRST_TELEGRAM_BOT_USERNAME:-}
+      PAPERFIRST_TELEGRAM_WEB_APP_URL: ${PAPERFIRST_TELEGRAM_WEB_APP_URL:-http://localhost:5173}
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      VITE_API_BASE_URL: /api
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+
+volumes:
+  paperfirst_postgres:
