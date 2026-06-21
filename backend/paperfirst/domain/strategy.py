@@ -83,7 +83,7 @@ class StrategySpec(BaseModel):
 
 
     def referenced_fields(self) -> set[str]:
-        fields: set[str] = set()
+        fields = set()
         for condition in self.conditions:
             fields.add(condition.left)
             if isinstance(condition.right, str):

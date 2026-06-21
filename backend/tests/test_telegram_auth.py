@@ -13,7 +13,7 @@ def signed_init_data(bot_token: str, payload: dict[str, str]) -> str:
     return urlencode(payload)
 
 
-def test_telegram_init_data_rejects_future_auth_date() -> None:
+def test_telegram_init_data_rejects_future_auth_date():
     bot_token = "token"
     payload = {
         "auth_date": str(int((datetime.now(UTC) + timedelta(hours=1)).timestamp())),

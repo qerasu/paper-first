@@ -4,7 +4,7 @@ from paperfirst.domain.backtest import BacktestEngine, Candle, build_demo_candle
 from paperfirst.domain.strategy import ComparisonOperator, RiskSpec, SignalCondition, SignalGroup, StrategySpec, sample_strategy
 
 
-def test_backtest_runs_on_demo_data() -> None:
+def test_backtest_runs_on_demo_data():
     strategy = sample_strategy()
     candles = build_demo_candles(points=120)
     report = BacktestEngine().run(strategy, candles)
@@ -14,7 +14,7 @@ def test_backtest_runs_on_demo_data() -> None:
     assert report.verdict.value in {"reject", "unstable", "research", "paper", "live-ready"}
 
 
-def test_forced_close_updates_final_drawdown_after_exit_costs() -> None:
+def test_forced_close_updates_final_drawdown_after_exit_costs():
     strategy = StrategySpec(
         name="forced close",
         entry=SignalGroup(all=[SignalCondition(left="close", operator=ComparisonOperator.greater_than, right=0)]),

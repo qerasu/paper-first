@@ -89,8 +89,8 @@ class BacktestEngine:
         indicator_cache = self._build_indicator_cache(strategy, ordered_candles)
         cash = strategy.risk.initial_capital
         position: OpenPosition | None = None
-        trades: list[Trade] = []
-        equity_curve: list[EquityPoint] = []
+        trades = []
+        equity_curve = []
         fees_paid = 0.0
         peak_equity = cash
 
@@ -275,7 +275,7 @@ class BacktestEngine:
 
 
     def _build_indicator_cache(self, strategy: StrategySpec, candles: list[Candle]) -> dict[str, list[float | None]]:
-        cache: dict[str, list[float | None]] = {}
+        cache = {}
         close_values = [candle.close for candle in candles]
         for field in strategy.referenced_fields():
             if field.startswith("sma_"):
@@ -319,7 +319,7 @@ class BacktestEngine:
 
 
     def _build_verdict(self, strategy: StrategySpec, metrics: BacktestMetrics) -> tuple[Verdict, str, list[str]]:
-        warnings: list[str] = []
+        warnings = []
         if metrics.trade_count < 5:
             warnings.append("too few trades for statistical confidence")
         if metrics.max_drawdown_pct > strategy.risk.max_drawdown_pct:
@@ -334,7 +334,7 @@ class BacktestEngine:
 
 
 def build_demo_candles(points: int = 240) -> list[Candle]:
-    candles: list[Candle] = []
+    candles = []
     price = 100.0
     started_at = datetime.now(UTC) - timedelta(hours=points)
     for index in range(points):
@@ -369,7 +369,7 @@ def _period_from_token(token: str) -> int:
 
 
 def _moving_average(values: list[float], period: int) -> list[float | None]:
-    result: list[float | None] = []
+    result = []
     window_sum = 0.0
     for index, value in enumerate(values):
         window_sum += value
@@ -383,7 +383,7 @@ def _moving_average(values: list[float], period: int) -> list[float | None]:
 
 
 def _exponential_moving_average(values: list[float], period: int) -> list[float | None]:
-    result: list[float | None] = []
+    result = []
     multiplier = 2 / (period + 1)
     ema: float | None = None
     for index, value in enumerate(values):
@@ -403,8 +403,8 @@ def _relative_strength_index(values: list[float], period: int) -> list[float | N
         return [None for _ in values]
 
     result: list[float | None] = [None for _ in values]
-    gains: list[float] = []
-    losses: list[float] = []
+    gains = []
+    losses = []
     for index in range(1, len(values)):
         change = values[index] - values[index - 1]
         gains.append(max(change, 0))
