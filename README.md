@@ -102,8 +102,11 @@ python3 start.py --all
 - `GET /api/health`
 - `GET /api/strategy/sample`
 - `POST /api/strategy/validate`
+- `POST /api/strategy/import`
 - `POST /api/backtests/run`
 - `GET /api/backtests/{job_id}`
+
+`POST /api/strategy/import` принимает `multipart/form-data` с полями `text` и/или `file`. Файл передается в Gemini inline, поэтому MVP ограничен небольшими PDF/изображениями; для больших документов нужен Gemini Files API.
 
 `POST /api/backtests/run` создает job в Postgres и кладет расчет в Redis/RQ. Отчет забирается через `GET /api/backtests/{job_id}`. Если `candles=[]` и `use_demo_data=true`, worker использует синтетическую историю свечей.
 

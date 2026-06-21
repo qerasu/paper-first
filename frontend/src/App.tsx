@@ -1,7 +1,7 @@
-import { AlertTriangle, CheckCircle2, Play, RefreshCw, ShieldAlert } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Play, RefreshCw, ShieldAlert, Upload, WandSparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { fetchSampleStrategy, runBacktest } from "./api";
+import { fetchSampleStrategy, importStrategy, runBacktest } from "./api";
 import { initTelegramWebApp } from "./telegram";
 import type { BacktestReport, StrategySpec, Verdict } from "./types";
 
@@ -15,8 +15,10 @@ const verdictLabels: Record<Verdict, string> = {
 
 function App() {
   const [strategyText, setStrategyText] = useState("");
+  const [strategyFile, setStrategyFile] = useState<File | null>(null);
   const [report, setReport] = useState<BacktestReport | null>(null);
   const [loading, setLoading] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -53,6 +55,25 @@ function App() {
     }
   };
 
+  const handleImport = async () => {
+    if (!strategyText.trim() && !strategyFile) {
+      setError("Add text or choose a file first");
+      return;
+    }
+
+    setImporting(true);
+    setError(null);
+    setReport(null);
+    try {
+      const strategy = await importStrategy({ text: strategyText, file: strategyFile });
+      setStrategyText(JSON.stringify(strategy, null, 2));
+    } catch (importError) {
+      setError(importError instanceof Error ? importError.message : "Unknown error");
+    } finally {
+      setImporting(false);
+    }
+  };
+
   return (
     <main className="shell">
       <section className="workspace">
@@ -61,7 +82,7 @@ function App() {
             <p className="eyebrow">Paper First</p>
             <h1>Pre-deposit strategy audit</h1>
           </div>
-          <button className="primaryButton" disabled={loading || !parsedStrategy} onClick={handleRun}>
+          <button className="primaryButton" disabled={loading || importing || !parsedStrategy} onClick={handleRun}>
             {loading ? <RefreshCw className="spin" size={18} /> : <Play size={18} />}
             Run demo audit
           </button>
@@ -72,9 +93,30 @@ function App() {
             <div className="panelHeader">
               <div>
                 <h2>StrategySpec</h2>
-                <span>{parsedStrategy ? "valid JSON" : "JSON error"}</span>
+                <span>{strategyFile ? strategyFile.name : parsedStrategy ? "valid JSON" : "JSON error"}</span>
               </div>
-              {parsedStrategy ? <CheckCircle2 size={20} /> : <ShieldAlert size={20} />}
+              <div className="panelActions">
+                <label className="fileButton" title="Upload screenshot, PDF, or text file">
+                  <Upload size={18} />
+                  <input
+                    aria-label="Upload source file"
+                    className="fileInput"
+                    type="file"
+                    accept="image/*,application/pdf,text/*,application/json"
+                    onChange={(event) => setStrategyFile(event.target.files?.[0] ?? null)}
+                  />
+                </label>
+                <button
+                  className="secondaryButton"
+                  disabled={loading || importing || (!strategyText.trim() && !strategyFile)}
+                  onClick={handleImport}
+                  title="Extract StrategySpec JSON"
+                >
+                  {importing ? <RefreshCw className="spin" size={18} /> : <WandSparkles size={18} />}
+                  Extract JSON
+                </button>
+                {parsedStrategy ? <CheckCircle2 size={20} /> : <ShieldAlert size={20} />}
+              </div>
             </div>
             <textarea
               spellCheck={false}

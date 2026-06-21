@@ -50,7 +50,7 @@ async def open_strategy(message: Message):
 
 
 async def echo_document(message: Message):
-    await message.answer("For now, the MVP accepts a strategy as JSON in the Mini App. File uploads are the next step.")
+    await message.answer("Open the Mini App to import a strategy from JSON, text, PDF, or image.")
 
 
 async def fallback(message: Message):

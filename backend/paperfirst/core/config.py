@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     telegram_bot_username: str | None = None
     telegram_web_app_url: str = "http://localhost:5173"
     backend_cors_origins: str = "http://localhost:5173"
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemini-3.5-flash"
 
     model_config = SettingsConfigDict(
         env_prefix="PAPERFIRST_",

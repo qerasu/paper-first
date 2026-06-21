@@ -100,6 +100,7 @@ h2 {
 .panelHeader {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 12px;
   min-height: 64px;
@@ -108,8 +109,54 @@ h2 {
 }
 
 .panelHeader span {
+  display: block;
+  max-width: 320px;
   color: #65706a;
   font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panelActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.secondaryButton,
+.fileButton {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #cfd5d0;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #fff;
+  color: #173f35;
+  cursor: pointer;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.secondaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.fileButton {
+  width: 38px;
+  padding: 0;
+  position: relative;
+}
+
+.fileInput {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  opacity: 0;
 }
 
 textarea {

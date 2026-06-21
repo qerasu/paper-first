@@ -33,6 +33,27 @@ export async function runBacktest(strategy: StrategySpec): Promise<BacktestRepor
 }
 
 
+export async function importStrategy(input: { text: string; file: File | null }): Promise<StrategySpec> {
+  const body = new FormData();
+  if (input.text.trim()) {
+    body.append("text", input.text);
+  }
+  if (input.file) {
+    body.append("file", input.file);
+  }
+
+  const response = await fetch(`${API_BASE_URL}/strategy/import`, {
+    method: "POST",
+    body
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(payload.detail ?? "Strategy import failed");
+  }
+  return response.json();
+}
+
+
 async function startBacktest(strategy: StrategySpec): Promise<BacktestJob> {
   const response = await fetch(`${API_BASE_URL}/backtests/run`, {
     method: "POST",
