@@ -8,7 +8,16 @@ def test_start_keyboard_uses_inline_web_app_button_for_https_url():
     button = keyboard.inline_keyboard[0][0]
     assert button.text == "Open Mini App"
     assert button.web_app is not None
-    assert button.web_app.url == "https://app.example"
+    assert button.web_app.url == "https://app.example?v=ui-2"
+
+
+def test_start_keyboard_keeps_existing_web_app_query_params():
+    keyboard = build_start_keyboard("https://app.example/path?ref=bot")
+
+    assert keyboard is not None
+    button = keyboard.inline_keyboard[0][0]
+    assert button.web_app is not None
+    assert button.web_app.url == "https://app.example/path?ref=bot&v=ui-2"
 
 
 def test_start_keyboard_is_hidden_without_https_url():

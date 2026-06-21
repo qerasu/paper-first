@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import CommandStart
@@ -10,6 +10,7 @@ from paperfirst.core.config import get_settings
 
 
 logger = logging.getLogger(__name__)
+WEB_APP_CACHE_BUSTER = "ui-2"
 
 
 def is_https_url(url: str) -> bool:
@@ -17,11 +18,19 @@ def is_https_url(url: str) -> bool:
     return parsed.scheme == "https" and bool(parsed.netloc)
 
 
+def versioned_web_app_url(url: str) -> str:
+    parsed = urlparse(url)
+    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    query["v"] = WEB_APP_CACHE_BUSTER
+
+    return urlunparse(parsed._replace(query=urlencode(query)))
+
+
 def build_start_keyboard(web_app_url: str) -> InlineKeyboardMarkup | None:
     if not is_https_url(web_app_url):
         return None
 
-    button = InlineKeyboardButton(text="Open Mini App", web_app=WebAppInfo(url=web_app_url))
+    button = InlineKeyboardButton(text="Open Mini App", web_app=WebAppInfo(url=versioned_web_app_url(web_app_url)))
 
     return InlineKeyboardMarkup(inline_keyboard=[[button]])
 
