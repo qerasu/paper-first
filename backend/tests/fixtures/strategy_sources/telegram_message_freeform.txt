@@ -1,0 +1,9 @@
+Can you check this strategy?
+
+BTCUSDT, 1h.
+I want longs only.
+Open when price is above ema 50 and rsi 14 is lower than 35.
+Close if price drops under ema 50, or rsi goes over 65.
+Capital 1000, position 15%, stop 4%, take profit 10%.
+Use normal crypto exchange costs: fee 10 bps, slippage 6 bps.
+Max drawdown must stay under 20%.

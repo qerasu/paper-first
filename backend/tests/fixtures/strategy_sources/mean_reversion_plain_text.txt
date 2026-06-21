@@ -1,0 +1,18 @@
+Strategy name: BTC RSI mean reversion
+Market: BTC/USDT
+Timeframe: 1h
+
+Entry:
+Buy only when close is above SMA 200 and RSI 14 is below 32.
+
+Exit:
+Close when RSI 14 is above 58 or close falls below SMA 200.
+
+Risk:
+Start with 1000 USDT.
+Use 20 percent of equity per trade.
+Stop loss 3 percent.
+Take profit 7 percent.
+Fees 8 bps.
+Slippage 5 bps.
+Reject if max drawdown is above 18 percent.

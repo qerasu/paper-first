@@ -1,0 +1,27 @@
+Backtest idea from chat:
+
+Ignore old short rules. Use only long setup below.
+
+PAIR: ADA/USDT
+TF: 1h
+
+Buy trigger:
+1. close must be over sma_50
+2. rsi_14 must be less than 38
+
+Sell / exit:
+- close below sma_50
+- or rsi_14 greater than 63
+
+Risk assumptions:
+deposit = 1000
+order size = 10 percent
+stop = 3 percent
+target = 8 percent
+fee = 8 bps
+slippage = 5 bps
+max drawdown = 16 percent
+
+Old notes:
+Maybe add MACD later.
+Do not use this line as a rule: "buy every Monday".

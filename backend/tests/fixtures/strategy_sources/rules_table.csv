@@ -1,0 +1,14 @@
+section,left,operator,right,note
+meta,symbol,==,SOL/USDT,
+meta,timeframe,==,1h,
+entry,close,>,ema_21,trade with short-term trend
+entry,rsi_14,<,45,pullback zone
+exit,close,<,ema_21,trend failed
+exit,rsi_14,>,68,momentum stretched
+risk,initial_capital,==,1500,usdt
+risk,position_size_pct,==,18,percent
+risk,stop_loss_pct,==,4,percent
+risk,take_profit_pct,==,11,percent
+risk,fee_bps,==,8,bps
+risk,slippage_bps,==,5,bps
+risk,max_drawdown_pct,==,19,percent

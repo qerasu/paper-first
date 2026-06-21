@@ -1,0 +1,24 @@
+{
+  "title": "BNB trend pullback draft",
+  "market": "BNB/USDT",
+  "tf": "2h",
+  "rules": {
+    "enter_long": [
+      "close > ema_50",
+      "rsi_14 < 42"
+    ],
+    "exit_long": [
+      "close < ema_50",
+      "rsi_14 > 66"
+    ]
+  },
+  "money_management": {
+    "capital_usdt": 1200,
+    "position_pct": 16,
+    "stop_pct": 3.5,
+    "target_pct": 9,
+    "fee_bps": 8,
+    "slippage_bps": 5,
+    "max_dd_pct": 17
+  }
+}

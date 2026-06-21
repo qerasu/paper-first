@@ -12,7 +12,7 @@ from paperfirst.domain.strategy import StrategySpec
 
 
 MAX_INLINE_FILE_BYTES = 12 * 1024 * 1024
-GEMINI_TIMEOUT_SECONDS = 45
+GEMINI_TIMEOUT_SECONDS = 100
 
 PROMPT = """
 Convert the user's trading strategy source into Paper First StrategySpec JSON.
@@ -20,8 +20,63 @@ Use only fields supported by the backtester: open, high, low, close, volume, sma
 Use only these operators: >, >=, <, <=, ==, !=.
 Map entry rules to opening a long position and exit rules to closing it.
 If symbol, timeframe, or risk settings are missing, use conservative defaults.
+Always include entry.all, entry.any, exit.all, exit.any, and required risk fields.
 Put short extraction assumptions in metadata.assumptions.
 """.strip()
+CONDITION_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "left": {"type": "STRING"},
+        "operator": {"type": "STRING", "enum": [">", ">=", "<", "<=", "==", "!="]},
+        "right": {"anyOf": [{"type": "NUMBER"}, {"type": "STRING"}]},
+    },
+    "required": ["left", "operator", "right"],
+}
+SIGNAL_GROUP_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "all": {"type": "ARRAY", "items": CONDITION_SCHEMA},
+        "any": {"type": "ARRAY", "items": CONDITION_SCHEMA},
+    },
+    "required": ["all", "any"],
+}
+STRATEGY_RESPONSE_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "name": {"type": "STRING"},
+        "symbol": {"type": "STRING"},
+        "timeframe": {"type": "STRING"},
+        "entry": SIGNAL_GROUP_SCHEMA,
+        "exit": SIGNAL_GROUP_SCHEMA,
+        "risk": {
+            "type": "OBJECT",
+            "properties": {
+                "initial_capital": {"type": "NUMBER"},
+                "position_size_pct": {"type": "NUMBER"},
+                "stop_loss_pct": {"type": "NUMBER"},
+                "take_profit_pct": {"type": "NUMBER"},
+                "fee_bps": {"type": "NUMBER"},
+                "slippage_bps": {"type": "NUMBER"},
+                "max_drawdown_pct": {"type": "NUMBER"},
+            },
+            "required": [
+                "initial_capital",
+                "position_size_pct",
+                "stop_loss_pct",
+                "fee_bps",
+                "slippage_bps",
+                "max_drawdown_pct",
+            ],
+        },
+        "metadata": {
+            "type": "OBJECT",
+            "properties": {
+                "assumptions": {"type": "ARRAY", "items": {"type": "STRING"}},
+            },
+        },
+    },
+    "required": ["name", "symbol", "timeframe", "entry", "exit", "risk"],
+}
 
 
 class GeminiStrategyError(RuntimeError):
@@ -62,12 +117,8 @@ def build_gemini_payload(*, text: str, file_bytes: bytes | None = None, mime_typ
         "contents": [{"parts": parts}],
         "generationConfig": {
             "temperature": 0,
-            "responseFormat": {
-                "text": {
-                    "mimeType": "application/json",
-                    "schema": StrategySpec.model_json_schema(),
-                }
-            },
+            "responseMimeType": "application/json",
+            "responseSchema": STRATEGY_RESPONSE_SCHEMA,
         },
     }
 
@@ -97,5 +148,11 @@ def _post_json(url: str, api_key: str, payload: dict[str, Any]) -> dict[str, Any
     try:
         with urlopen(request, timeout=GEMINI_TIMEOUT_SECONDS) as response:
             return json.loads(response.read().decode("utf-8"))
-    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
-        raise GeminiStrategyError("Gemini request failed") from exc
+    except HTTPError as exc:
+        raise GeminiStrategyError(f"Gemini request failed: {exc.code} {exc.reason}") from exc
+    except URLError as exc:
+        raise GeminiStrategyError(f"Gemini request failed: {exc.reason}") from exc
+    except TimeoutError as exc:
+        raise GeminiStrategyError("Gemini request failed: request timed out") from exc
+    except json.JSONDecodeError as exc:
+        raise GeminiStrategyError("Gemini request failed: invalid JSON response") from exc
