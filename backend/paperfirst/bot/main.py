@@ -4,13 +4,14 @@ from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import CommandStart
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, WebAppInfo
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, Message, ReplyKeyboardMarkup, WebAppInfo
 
 from paperfirst.core.config import get_settings
 
 
 logger = logging.getLogger(__name__)
-WEB_APP_CACHE_BUSTER = "ui-2"
+WEB_APP_CACHE_BUSTER = "ui-3"
+CHECK_STRATEGY_BUTTON = "Check strategy"
 
 
 def is_https_url(url: str) -> bool:
@@ -35,6 +36,13 @@ def build_start_keyboard(web_app_url: str) -> InlineKeyboardMarkup | None:
     return InlineKeyboardMarkup(inline_keyboard=[[button]])
 
 
+def build_reply_keyboard() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text=CHECK_STRATEGY_BUTTON)]],
+        resize_keyboard=True,
+    )
+
+
 def build_start_text(web_app_url: str) -> str:
     text = "Paper First checks a strategy before deposit: fees, slippage, drawdown, and a basic verdict."
     if is_https_url(web_app_url):
@@ -48,6 +56,7 @@ async def start(message: Message):
         build_start_text(settings.telegram_web_app_url),
         reply_markup=build_start_keyboard(settings.telegram_web_app_url),
     )
+    await message.answer("Choose an action:", reply_markup=build_reply_keyboard())
 
 
 async def open_strategy(message: Message):
@@ -79,7 +88,7 @@ async def main():
     bot = Bot(token=settings.telegram_bot_token)
     dispatcher = Dispatcher()
     dispatcher.message.register(start, CommandStart())
-    dispatcher.message.register(open_strategy, F.text == "Check strategy")
+    dispatcher.message.register(open_strategy, F.text == CHECK_STRATEGY_BUTTON)
     dispatcher.message.register(echo_document, F.document)
     dispatcher.message.register(fallback)
     await dispatcher.start_polling(bot)
