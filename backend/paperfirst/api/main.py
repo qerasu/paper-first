@@ -1,3 +1,4 @@
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -10,12 +11,16 @@ from paperfirst.storage.session import create_tables
 
 
 settings = get_settings()
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-    # ponytail: create_all is enough until schema migrations exist.
-    await create_tables()
+    try:
+        # ponytail: create_all is enough until schema migrations exist.
+        await create_tables()
+    except Exception as exc:
+        logger.warning("database startup skipped: %s", exc)
 
     yield
 
