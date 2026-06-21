@@ -80,40 +80,14 @@ textarea:focus-visible {
 .shell {
   position: relative;
   z-index: 1;
-  display: grid;
   min-height: 100vh;
-  place-items: start center;
-  padding: clamp(18px, 5vw, 46px);
+  padding: clamp(18px, 4vw, 36px);
 }
 
 .workspace {
   position: relative;
-  width: min(100%, 440px);
-  min-height: calc(100vh - clamp(36px, 10vw, 92px));
-  overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 0.42);
-  border-radius: 34px;
-  padding: 48px 16px 16px;
-  background:
-    linear-gradient(#222, #0b0b0b 42%, #050505),
-    #080808;
-  box-shadow:
-    0 36px 90px rgb(0 0 0 / 0.72),
-    inset 0 0 0 6px #080808,
-    inset 0 0 0 7px rgb(255 255 255 / 0.12);
-}
-
-.workspace::before {
-  position: absolute;
-  top: 16px;
-  left: 50%;
-  width: 126px;
-  height: 28px;
-  border-radius: 999px;
-  background: #000;
-  box-shadow: inset -28px 0 0 rgb(255 255 255 / 0.08);
-  content: "";
-  transform: translateX(-50%);
+  width: min(100%, 920px);
+  margin: 0 auto;
 }
 
 .topbar {
@@ -155,18 +129,24 @@ h2 {
 
 .primaryButton {
   display: inline-flex;
-  min-height: 44px;
+  min-height: 46px;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  border: 1px solid #fff;
+  gap: 10px;
+  border: 1px solid rgb(255 255 255 / 0.18);
   border-radius: 8px;
-  padding: 0 14px;
-  background: #fff;
-  color: #050505;
+  padding: 0 18px;
+  background: #171717;
+  color: #fff;
   cursor: pointer;
   font-weight: 800;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
   white-space: nowrap;
+}
+
+.primaryButton:not(:disabled):hover {
+  border-color: rgb(255 255 255 / 0.34);
+  background: #232323;
 }
 
 .primaryButton:disabled,
@@ -476,13 +456,11 @@ textarea {
 
 @media (max-width: 420px) {
   .shell {
-    padding: 10px;
+    padding: 14px;
   }
 
   .workspace {
-    min-height: calc(100vh - 20px);
-    border-radius: 28px;
-    padding: 46px 12px 12px;
+    width: 100%;
   }
 
   .topbar {
