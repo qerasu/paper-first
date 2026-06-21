@@ -6,9 +6,10 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 COPY pyproject.toml /app/pyproject.toml
-COPY paperfirst /app/paperfirst
-
+RUN mkdir -p paperfirst && touch paperfirst/__init__.py
 RUN pip install --no-cache-dir -e .
+
+COPY paperfirst /app/paperfirst
 
 EXPOSE 8000
 
