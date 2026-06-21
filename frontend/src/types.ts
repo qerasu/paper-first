@@ -29,6 +29,8 @@ export type StrategySpec = {
   metadata?: Record<string, unknown>;
 };
 
+export type BacktestJobStatus = "queued" | "running" | "completed" | "failed";
+
 export type BacktestReport = {
   strategy_name: string;
   symbol: string;
@@ -64,4 +66,11 @@ export type BacktestReport = {
     drawdown_pct: number;
   }>;
   warnings: string[];
+};
+
+export type BacktestJob = {
+  id: string;
+  status: BacktestJobStatus;
+  report: BacktestReport | null;
+  error: string | null;
 };

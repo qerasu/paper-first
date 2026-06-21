@@ -1,13 +1,26 @@
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from paperfirst.api.routes import router
 from paperfirst.core.config import get_settings, parse_cors_origins
+from paperfirst.storage.session import create_tables
 
 
 settings = get_settings()
 
-app = FastAPI(title=settings.app_name)
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    # ponytail: create_all is enough until schema migrations exist.
+    await create_tables()
+
+    yield
+
+
+app = FastAPI(title=settings.app_name, lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=parse_cors_origins(settings.backend_cors_origins),
