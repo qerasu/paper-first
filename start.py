@@ -48,10 +48,26 @@ def build_command(args: argparse.Namespace) -> list[str]:
 
 
 def run_compose(command: list[str], env: dict[str, str]) -> int:
-    process = subprocess.Popen(command, cwd=PROJECT_ROOT, env=env)
+    process = subprocess.Popen(
+        command,
+        cwd=PROJECT_ROOT,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    if process.stdout is None:
+        return process.wait()
+
     try:
+        for line in process.stdout:
+            if line.strip():
+                print(line, end="")
         return process.wait()
     except KeyboardInterrupt:
+        for line in process.stdout:
+            if line.strip():
+                print(line, end="")
         return process.wait()
 
 
