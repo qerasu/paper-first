@@ -1,4 +1,4 @@
-from paperfirst.bot.main import build_bot_commands, build_reply_keyboard, build_start_keyboard
+from paperfirst.bot.main import build_bot_commands, build_start_keyboard
 
 
 def test_start_keyboard_uses_inline_web_app_button_for_https_url():
@@ -22,12 +22,6 @@ def test_start_keyboard_keeps_existing_web_app_query_params():
 
 def test_start_keyboard_is_hidden_without_https_url():
     assert build_start_keyboard("http://localhost:5173") is None
-
-
-def test_reply_keyboard_uses_english_check_strategy_button():
-    keyboard = build_reply_keyboard()
-
-    assert keyboard.keyboard[0][0].text == "Check strategy"
 
 
 def test_bot_command_menu_starts_with_check_strategy():

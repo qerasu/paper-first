@@ -4,7 +4,7 @@ from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command, CommandStart
-from aiogram.types import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, Message, ReplyKeyboardMarkup, WebAppInfo
+from aiogram.types import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, Message, WebAppInfo
 
 from paperfirst.core.config import get_settings
 
@@ -37,13 +37,6 @@ def build_start_keyboard(web_app_url: str) -> InlineKeyboardMarkup | None:
     return InlineKeyboardMarkup(inline_keyboard=[[button]])
 
 
-def build_reply_keyboard() -> ReplyKeyboardMarkup:
-    return ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text=CHECK_STRATEGY_BUTTON)]],
-        resize_keyboard=True,
-    )
-
-
 def build_bot_commands() -> list[BotCommand]:
     return [BotCommand(command=CHECK_STRATEGY_COMMAND, description=CHECK_STRATEGY_BUTTON)]
 
@@ -59,7 +52,7 @@ async def start(message: Message):
     settings = get_settings()
     await message.answer(
         build_start_text(settings.telegram_web_app_url),
-        reply_markup=build_reply_keyboard(),
+        reply_markup=build_start_keyboard(settings.telegram_web_app_url),
     )
 
 
@@ -94,7 +87,6 @@ async def main():
     dispatcher = Dispatcher()
     dispatcher.message.register(start, CommandStart())
     dispatcher.message.register(open_strategy, Command(CHECK_STRATEGY_COMMAND))
-    dispatcher.message.register(open_strategy, F.text == CHECK_STRATEGY_BUTTON)
     dispatcher.message.register(echo_document, F.document)
     dispatcher.message.register(fallback)
     await dispatcher.start_polling(bot)
