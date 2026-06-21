@@ -12,7 +12,6 @@ APP_SERVICES = ["postgres", "redis", "api", "worker", "frontend"]
 WORKER_SERVICES = ["postgres", "redis", "api", "worker", "frontend"]
 BOT_SERVICES = ["postgres", "redis", "api", "worker", "frontend", "bot"]
 ALL_SERVICES = ["postgres", "redis", "api", "worker", "frontend", "bot"]
-DOCKER_COMPOSE_ATTEMPTS = 2
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -48,15 +47,12 @@ def build_command(args: argparse.Namespace) -> list[str]:
     return command
 
 
-def run_with_retry(command: list[str], env: dict[str, str]) -> int:
-    for attempt in range(1, DOCKER_COMPOSE_ATTEMPTS + 1):
-        completed = subprocess.run(command, cwd=PROJECT_ROOT, env=env)
-        if completed.returncode == 0 or attempt == DOCKER_COMPOSE_ATTEMPTS:
-            return completed.returncode
-
-        print("docker compose failed; retrying once...", file=sys.stderr)
-
-    return 1
+def run_compose(command: list[str], env: dict[str, str]) -> int:
+    process = subprocess.Popen(command, cwd=PROJECT_ROOT, env=env)
+    try:
+        return process.wait()
+    except KeyboardInterrupt:
+        return process.wait()
 
 
 def main() -> int:
@@ -72,13 +68,10 @@ def main() -> int:
 
     try:
         print(f"running: {printable_command}")
-        return run_with_retry(command, command_env)
+        return run_compose(command, command_env)
     except RuntimeError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
-    except KeyboardInterrupt:
-        print("stopped", file=sys.stderr)
-        return 130
 
 
 if __name__ == "__main__":
