@@ -3,8 +3,8 @@ import logging
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from aiogram import Bot, Dispatcher, F
-from aiogram.filters import CommandStart
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, Message, ReplyKeyboardMarkup, WebAppInfo
+from aiogram.filters import Command, CommandStart
+from aiogram.types import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, Message, ReplyKeyboardMarkup, WebAppInfo
 
 from paperfirst.core.config import get_settings
 
@@ -12,6 +12,7 @@ from paperfirst.core.config import get_settings
 logger = logging.getLogger(__name__)
 WEB_APP_CACHE_BUSTER = "ui-3"
 CHECK_STRATEGY_BUTTON = "Check strategy"
+CHECK_STRATEGY_COMMAND = "check_strategy"
 
 
 def is_https_url(url: str) -> bool:
@@ -41,6 +42,10 @@ def build_reply_keyboard() -> ReplyKeyboardMarkup:
         keyboard=[[KeyboardButton(text=CHECK_STRATEGY_BUTTON)]],
         resize_keyboard=True,
     )
+
+
+def build_bot_commands() -> list[BotCommand]:
+    return [BotCommand(command=CHECK_STRATEGY_COMMAND, description=CHECK_STRATEGY_BUTTON)]
 
 
 def build_start_text(web_app_url: str) -> str:
@@ -85,8 +90,10 @@ async def main():
         raise RuntimeError("PAPERFIRST_TELEGRAM_BOT_TOKEN is required")
 
     bot = Bot(token=settings.telegram_bot_token)
+    await bot.set_my_commands(build_bot_commands())
     dispatcher = Dispatcher()
     dispatcher.message.register(start, CommandStart())
+    dispatcher.message.register(open_strategy, Command(CHECK_STRATEGY_COMMAND))
     dispatcher.message.register(open_strategy, F.text == CHECK_STRATEGY_BUTTON)
     dispatcher.message.register(echo_document, F.document)
     dispatcher.message.register(fallback)
