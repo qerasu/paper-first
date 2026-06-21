@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: paper-first-tma
+    runtime: static
+    plan: free
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: /api
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
