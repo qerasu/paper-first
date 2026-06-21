@@ -54,9 +54,8 @@ async def start(message: Message):
     settings = get_settings()
     await message.answer(
         build_start_text(settings.telegram_web_app_url),
-        reply_markup=build_start_keyboard(settings.telegram_web_app_url),
+        reply_markup=build_reply_keyboard(),
     )
-    await message.answer("Choose an action:", reply_markup=build_reply_keyboard())
 
 
 async def open_strategy(message: Message):
