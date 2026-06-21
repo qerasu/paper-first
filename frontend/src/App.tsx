@@ -23,10 +23,10 @@ function App() {
     initTelegramWebApp();
     fetchSampleStrategy()
       .then((strategy) => setStrategyText(JSON.stringify(strategy, null, 2)))
-      .catch((fetchError: Error) => setError(fetchError.message));
+      .catch((fetchError) => setError(fetchError instanceof Error ? fetchError.message : "Unknown error"));
   }, []);
 
-  const parsedStrategy = useMemo<StrategySpec | null>(() => {
+  const parsedStrategy = useMemo(() => {
     try {
       return JSON.parse(strategyText) as StrategySpec;
     } catch {
@@ -36,17 +36,18 @@ function App() {
 
   const handleRun = async () => {
     if (!parsedStrategy) {
-      setError("JSON стратегии сейчас невалиден");
+      setError("Strategy JSON is invalid");
       return;
     }
 
     setLoading(true);
     setError(null);
+    setReport(null);
     try {
       const nextReport = await runBacktest(parsedStrategy);
       setReport(nextReport);
     } catch (runError) {
-      setError(runError instanceof Error ? runError.message : "Неизвестная ошибка");
+      setError(runError instanceof Error ? runError.message : "Unknown error");
     } finally {
       setLoading(false);
     }
@@ -58,11 +59,11 @@ function App() {
         <header className="topbar">
           <div>
             <p className="eyebrow">Paper First</p>
-            <h1>Аудит стратегии до депозита</h1>
+            <h1>Pre-deposit strategy audit</h1>
           </div>
           <button className="primaryButton" disabled={loading || !parsedStrategy} onClick={handleRun}>
             {loading ? <RefreshCw className="spin" size={18} /> : <Play size={18} />}
-            Запустить демо-аудит
+            Run demo audit
           </button>
         </header>
 
@@ -71,7 +72,7 @@ function App() {
             <div className="panelHeader">
               <div>
                 <h2>StrategySpec</h2>
-                <span>{parsedStrategy ? "валидный JSON" : "ошибка JSON"}</span>
+                <span>{parsedStrategy ? "valid JSON" : "JSON error"}</span>
               </div>
               {parsedStrategy ? <CheckCircle2 size={20} /> : <ShieldAlert size={20} />}
             </div>
@@ -103,8 +104,8 @@ function EmptyReport() {
   return (
     <div className="emptyState">
       <ShieldAlert size={32} />
-      <h2>Отчет появится после запуска</h2>
-      <p>В MVP используется встроенная демо-история свечей, чтобы проверить пайплайн без подключения биржи.</p>
+      <h2>The report will appear after launch</h2>
+      <p>The MVP uses built-in demo candle history to test the pipeline without connecting an exchange.</p>
     </div>
   );
 }
