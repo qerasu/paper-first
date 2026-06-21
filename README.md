@@ -17,7 +17,7 @@ Telegram Mini App и backend для аудита торговых стратег
 
 ## Локальный запуск
 
-Сначала скопируйте пример переменных и заполните токен бота значением (только если нужен Telegram polling):
+Сначала скопируйте пример переменных. Заполните токен бота, если нужен Telegram polling, и `PAPERFIRST_GEMINI_API_KEY`, если нужен импорт стратегии через Gemini:
 
 ```bash
 cp .env.example .env
@@ -54,6 +54,8 @@ docker compose --profile bot up bot
 ```
 
 Backend будет на `http://localhost:8000`, Mini App на `http://localhost:5173`.
+
+В Telegram бот отвечает на `/start`, показывает reply-кнопку `Check strategy` и регистрирует команду `/check_strategy` в меню бота. Кнопка Mini App появляется только для публичного `https` URL.
 
 Telegram разрешает Web App кнопки только с публичным `https` URL. Если в `PAPERFIRST_TELEGRAM_WEB_APP_URL` стоит `http://localhost:5173`, бот ответит обычным сообщением и не будет открывать Mini App внутри Telegram. Для полноценной кнопки нужен tunnel или домен:
 
@@ -106,13 +108,34 @@ python3 start.py --all
 - `POST /api/backtests/run`
 - `GET /api/backtests/{job_id}`
 
-`POST /api/strategy/import` принимает `multipart/form-data` с полями `text` и/или `file`. Файл передается в Gemini inline, поэтому MVP ограничен небольшими PDF/изображениями; для больших документов нужен Gemini Files API.
+`POST /api/strategy/import` принимает `multipart/form-data` с полями `text` и/или `file` и требует `PAPERFIRST_GEMINI_API_KEY`. Текстовые файлы и JSON объединяются с `text`; PDF и изображения передаются в Gemini inline. Лимит inline-файла: 12 MB. Gemini должен вернуть JSON со всеми группами сигналов `entry.all`, `entry.any`, `exit.all`, `exit.any` и всеми risk-полями.
 
 `POST /api/backtests/run` создает job в Postgres и кладет расчет в Redis/RQ. Отчет забирается через `GET /api/backtests/{job_id}`. Если `candles=[]` и `use_demo_data=true`, worker использует синтетическую историю свечей.
 
+## Проверки
+
+После установки зависимостей из `requirements.txt` backend-тесты запускаются так:
+
+```bash
+python3 -m pytest backend/tests
+```
+
+Live-проверки Gemini лежат отдельно и по умолчанию пропускаются:
+
+```bash
+RUN_LIVE_LLM_TESTS=1 PAPERFIRST_GEMINI_API_KEY=... python3 -m pytest backend/tests/llm_test
+```
+
+Frontend production-сборка:
+
+```bash
+cd frontend
+npm run build
+```
+
 ## StrategySpec
 
-Минимальная стратегия:
+Пример стратегии:
 
 ```json
 {
@@ -142,5 +165,3 @@ python3 start.py --all
   }
 }
 ```
-
-Поддерживаемые поля на старте: `open`, `high`, `low`, `close`, `volume`, `sma_N`, `ema_N`, `rsi_N`.
