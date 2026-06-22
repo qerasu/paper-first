@@ -2,7 +2,7 @@
 
 Telegram Mini App и backend для аудита торговых стратегий до реального депозита.
 
-Идея MVP: пользователь описывает стратегию в строгом JSON/DSL, запускает честный backtest с комиссиями и слиппеджем, получает отчет с вердиктом `reject`, `unstable`, `research` или `paper`.
+Идея MVP: пользователь загружает или описывает торговую стратегию, Paper First приводит ее к `StrategySpec`, запускает честный backtest с комиссиями и слиппеджем и показывает отчет с вердиктом `reject`, `unstable`, `research` или `paper`.
 
 Интерфейс Mini App и сообщения Telegram-бота отображаются на английском языке.
 
@@ -63,33 +63,27 @@ Telegram разрешает Web App кнопки только с публичн�
 PAPERFIRST_TELEGRAM_WEB_APP_URL=https://your-public-url.example
 ```
 
-## Mini App
+Проект остается local-first: backend, worker, Redis и Postgres живут локально во время разработки. Render нужен как простой стабильный `https`-адрес для frontend, чтобы один раз поставить его в BotFather и `PAPERFIRST_TELEGRAM_WEB_APP_URL`, а не поднимать новый tunnel только для UI.
 
-Mini App принимает источник стратегии файлом: текст, JSON, PDF или изображение. Кнопка `Load strategy` вызывает `POST /api/strategy/import` и загружает извлеченный `StrategySpec`.
+Мини-гайд для Render Static Site:
 
-Кнопка `Run audit` запускает `POST /api/backtests/run` с `use_demo_data=true` после успешной загрузки стратегии, затем опрашивает статус job и показывает verdict, метрики, equity curve, предупреждения и последние сделки.
-
-## Render URL для Telegram Mini App
-
-Если нужен только стабильный `https` домен для Mini App, можно задеплоить frontend как Render Static Site.
-
-1. Запушь репозиторий в GitHub.
-2. В Render выбери `New` -> `Blueprint` и подключи репозиторий.
+1. Запушьте репозиторий в GitHub.
+2. В Render выберите `New` -> `Blueprint` и подключите репозиторий.
 3. Render возьмет настройки из `render.yaml` и создаст `paper-first-tma`.
-4. После деплоя скопируй URL вида `https://paper-first-tma.onrender.com`.
-5. Поставь этот URL в BotFather и в локальный `.env`:
+4. После деплоя скопируйте URL вида `https://paper-first-tma.onrender.com`.
+5. Поставьте этот URL в BotFather и в локальный `.env`:
 
 ```env
 PAPERFIRST_TELEGRAM_WEB_APP_URL=https://paper-first-tma.onrender.com
 ```
 
-После этого локальный бот можно запускать без туннеля:
+После этого локальный бот можно запускать без frontend-туннеля:
 
 ```bash
 python3 start.py --all
 ```
 
-Этот вариант хостит только frontend. Для рабочих API-запросов из Mini App понадобится публичный backend URL и `VITE_API_BASE_URL=https://your-api.example/api`.
+Render-хостинг в этом варианте отдает только frontend. Для рабочих API-запросов из Mini App backend тоже должен быть доступен по публичному `https` URL: через tunnel, отдельный deploy или другой временный адрес. Укажите его через `VITE_API_BASE_URL=https://your-api.example/api`.
 
 Для локальной проверки внутри Telegram нужны публичные HTTPS URL для frontend и API. Например, через tunnel:
 
@@ -99,11 +93,17 @@ PAPERFIRST_BACKEND_CORS_ORIGINS=["https://frontend-tunnel.example"]
 VITE_API_BASE_URL=https://api-tunnel.example/api
 ```
 
-После изменения URL перезапусти сервисы:
+После изменения URL перезапустите сервисы:
 
 ```bash
 python3 start.py --all
 ```
+
+## Mini App
+
+Mini App принимает источник стратегии файлом: текст, JSON, PDF или изображение. Кнопка `Load strategy` вызывает `POST /api/strategy/import` и загружает извлеченный `StrategySpec`.
+
+Кнопка `Run audit` запускает `POST /api/backtests/run` с `use_demo_data=true` после успешной загрузки стратегии, затем опрашивает статус job и показывает verdict, метрики, equity curve, предупреждения и последние сделки.
 
 ## API
 
