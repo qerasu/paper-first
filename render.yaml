@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: paper-first-tma
+    name: paper-first
     runtime: static
     plan: free
     buildCommand: cd frontend && npm ci && npm run build
@@ -36,7 +36,7 @@ services:
           type: keyvalue
           property: connectionString
       - key: PAPERFIRST_BACKEND_CORS_ORIGINS
-        value: '["https://paper-first-tma.onrender.com"]'
+        value: '["https://paper-first.onrender.com"]'
       - key: PAPERFIRST_GEMINI_API_KEY
         sync: false
 
