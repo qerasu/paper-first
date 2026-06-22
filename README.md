@@ -4,8 +4,6 @@ Telegram Mini App и backend для аудита торговых стратег
 
 Идея MVP: пользователь загружает или описывает торговую стратегию, Paper First приводит ее к `StrategySpec`, запускает честный backtest с комиссиями и слиппеджем и показывает отчет с вердиктом `reject`, `unstable`, `research` или `paper`.
 
-Интерфейс Mini App и сообщения Telegram-бота отображаются на английском языке.
-
 ## Стек
 
 - Backend API: FastAPI
@@ -13,7 +11,7 @@ Telegram Mini App и backend для аудита торговых стратег
 - Worker: RQ + Redis
 - DB: PostgreSQL
 - Frontend: React + Vite + TypeScript
-- Strategy format: JSON `StrategySpec`, без исполнения произвольного Python
+- Strategy format: JSON `StrategySpec`
 
 ## Локальный запуск
 
@@ -55,7 +53,7 @@ docker compose --profile bot up bot
 
 Backend будет на `http://localhost:8000`, Mini App на `http://localhost:5173`.
 
-В Telegram бот отвечает на `/start`, показывает reply-кнопку `Check strategy` и регистрирует команду `/check_strategy` в меню бота. Кнопка Mini App появляется только для публичного `https` URL.
+В Telegram бот отвечает на `/start`, показывает inline-кнопку `Open Mini App` и регистрирует команду `/check_strategy` в меню бота. Кнопка Mini App появляется только для публичного `https` URL.
 
 Telegram разрешает Web App кнопки только с публичным `https` URL. Если в `PAPERFIRST_TELEGRAM_WEB_APP_URL` стоит `http://localhost:5173`, бот ответит обычным сообщением и не будет открывать Mini App внутри Telegram. Для полноценной кнопки нужен tunnel или домен:
 
@@ -69,12 +67,12 @@ PAPERFIRST_TELEGRAM_WEB_APP_URL=https://your-public-url.example
 
 1. Запушьте репозиторий в GitHub.
 2. В Render выберите `New` -> `Blueprint` и подключите репозиторий.
-3. Render возьмет настройки из `render.yaml` и создаст `paper-first-tma`.
-4. После деплоя скопируйте URL вида `https://paper-first-tma.onrender.com`.
+3. Render возьмет настройки из `render.yaml` и создаст `paper-first`.
+4. После деплоя скопируйте URL вида `https://paper-first.onrender.com`.
 5. Поставьте этот URL в BotFather и в локальный `.env`:
 
 ```env
-PAPERFIRST_TELEGRAM_WEB_APP_URL=https://paper-first-tma.onrender.com
+PAPERFIRST_TELEGRAM_WEB_APP_URL=https://paper-first.onrender.com
 ```
 
 После этого локальный бот можно запускать без frontend-туннеля:
@@ -108,13 +106,12 @@ Mini App принимает источник стратегии файлом: т
 ## API
 
 - `GET /api/health`
-- `GET /api/strategy/sample`
 - `POST /api/strategy/validate`
 - `POST /api/strategy/import`
 - `POST /api/backtests/run`
 - `GET /api/backtests/{job_id}`
 
-`POST /api/strategy/import` принимает `multipart/form-data` с полями `text` и/или `file` и требует `PAPERFIRST_GEMINI_API_KEY`. Текстовые файлы и JSON объединяются с `text`; PDF и изображения передаются в Gemini inline. Лимит inline-файла: 12 MB. Gemini должен вернуть JSON со всеми группами сигналов `entry.all`, `entry.any`, `exit.all`, `exit.any` и всеми risk-полями.
+`POST /api/strategy/import` принимает `multipart/form-data` с полями `text` и/или `file` и требует `PAPERFIRST_GEMINI_API_KEY`. Текстовые файлы и JSON объединяются с `text`; PDF и изображения передаются в Gemini inline. Лимит inline-файла: 12 MB. Gemini должен вернуть JSON со всеми группами сигналов `entry.all`, `entry.any`, `exit.all`, `exit.any` и обязательными risk-полями; `take_profit_pct` опционален.
 
 `POST /api/backtests/run` создает job в Postgres и кладет расчет в Redis/RQ. Отчет забирается через `GET /api/backtests/{job_id}`. Если `candles=[]` и `use_demo_data=true`, worker использует синтетическую историю свечей.
 
