@@ -56,8 +56,8 @@ function App() {
   };
 
   const handleImport = async () => {
-    if (!strategyText.trim() && !strategyFile) {
-      setError("Add text or choose a file first");
+    if (!strategyFile) {
+      setError("Choose a file first");
       return;
     }
 
@@ -65,7 +65,7 @@ function App() {
     setError(null);
     setReport(null);
     try {
-      const strategy = await importStrategy({ text: strategyText, file: strategyFile });
+      const strategy = await importStrategy({ text: "", file: strategyFile });
       setStrategyText(JSON.stringify(strategy, null, 2));
     } catch (importError) {
       setError(importError instanceof Error ? importError.message : "Unknown error");
@@ -84,7 +84,7 @@ function App() {
           </div>
           <button className="primaryButton" disabled={loading || importing || !parsedStrategy} onClick={handleRun}>
             {loading ? <RefreshCw className="spin" size={18} /> : <Play size={18} />}
-            Run demo audit
+            Run audit
           </button>
         </header>
 
@@ -108,7 +108,7 @@ function App() {
                 </label>
                 <button
                   className="secondaryButton"
-                  disabled={loading || importing || (!strategyText.trim() && !strategyFile)}
+                  disabled={loading || importing || !strategyFile}
                   onClick={handleImport}
                   title="Extract StrategySpec JSON"
                 >
@@ -118,11 +118,6 @@ function App() {
                 {parsedStrategy ? <CheckCircle2 size={20} /> : <ShieldAlert size={20} />}
               </div>
             </div>
-            <textarea
-              spellCheck={false}
-              value={strategyText}
-              onChange={(event) => setStrategyText(event.target.value)}
-            />
           </section>
 
           <section className="reportPanel">
