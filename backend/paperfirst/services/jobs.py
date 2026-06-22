@@ -1,5 +1,8 @@
 from uuid import UUID
 
+from redis import Redis
+from rq import Queue
+
 from paperfirst.domain.backtest import BacktestRunRequest
 
 
@@ -7,9 +10,6 @@ QUEUE_NAME = "backtests"
 
 
 def enqueue_backtest(backtest_id: UUID, request: BacktestRunRequest, redis_url: str) -> str:
-    from redis import Redis
-    from rq import Queue
-
     connection = Redis.from_url(redis_url)
     queue = Queue(QUEUE_NAME, connection=connection)
     job = queue.enqueue(
