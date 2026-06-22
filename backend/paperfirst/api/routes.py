@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from paperfirst.core.config import get_settings
 from paperfirst.domain.backtest import BacktestEngine, BacktestReport, BacktestRunRequest, build_demo_candles
-from paperfirst.domain.strategy import StrategySpec, sample_strategy
+from paperfirst.domain.strategy import StrategySpec
 from paperfirst.services.gemini_strategy import (
     GeminiStrategyError,
     MAX_INLINE_FILE_BYTES,
@@ -38,11 +38,6 @@ class BacktestJobResponse(BaseModel):
 @router.get("/health", response_model=HealthResponse)
 async def health():
     return HealthResponse(status="ok", service="paperfirst-api")
-
-
-@router.get("/strategy/sample", response_model=StrategySpec)
-async def get_sample_strategy():
-    return sample_strategy()
 
 
 @router.post("/strategy/validate", response_model=StrategySpec)
