@@ -4,14 +4,6 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000
 const POLL_ATTEMPTS = 60;
 const POLL_INTERVAL_MS = 1000;
 
-export async function fetchSampleStrategy(): Promise<StrategySpec> {
-  const response = await fetch(`${API_BASE_URL}/strategy/sample`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch the sample strategy");
-  }
-  return response.json();
-}
-
 export async function runBacktest(strategy: StrategySpec): Promise<BacktestReport> {
   const job = await startBacktest(strategy);
   for (let attempt = 0; attempt < POLL_ATTEMPTS; attempt += 1) {

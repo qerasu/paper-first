@@ -63,6 +63,12 @@ Telegram разрешает Web App кнопки только с публичн�
 PAPERFIRST_TELEGRAM_WEB_APP_URL=https://your-public-url.example
 ```
 
+## Mini App
+
+Mini App принимает источник стратегии файлом: текст, JSON, PDF или изображение. Кнопка `Load strategy` вызывает `POST /api/strategy/import` и загружает извлеченный `StrategySpec`.
+
+Кнопка `Run audit` запускает `POST /api/backtests/run` с `use_demo_data=true` после успешной загрузки стратегии, затем опрашивает статус job и показывает verdict, метрики, equity curve, предупреждения и последние сделки.
+
 ## Render URL для Telegram Mini App
 
 Если нужен только стабильный `https` домен для Mini App, можно задеплоить frontend как Render Static Site.
@@ -165,3 +171,9 @@ npm run build
   }
 }
 ```
+
+`entry` и `exit` используют группы условий: все условия из `all` должны выполниться, а из `any` достаточно одного. Если `any` пустой, проверяются только условия из `all`.
+
+Поддерживаемые поля условий: `open`, `high`, `low`, `close`, `volume`, `equity`, `sma_N`, `ema_N`, `rsi_N`. Поддерживаемые операторы: `>`, `>=`, `<`, `<=`, `==`, `!=`.
+
+Backtest учитывает `position_size_pct`, `stop_loss_pct`, `take_profit_pct`, `fee_bps`, `slippage_bps` и `max_drawdown_pct`. Вердикт строится по прибыльности, drawdown, profit factor и числу сделок.

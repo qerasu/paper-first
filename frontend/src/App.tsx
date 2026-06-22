@@ -1,7 +1,7 @@
 import { AlertTriangle, CheckCircle2, Play, RefreshCw, ShieldAlert, Upload, WandSparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { fetchSampleStrategy, importStrategy, runBacktest } from "./api";
+import { importStrategy, runBacktest } from "./api";
 import { initTelegramWebApp } from "./telegram";
 import type { BacktestReport, StrategySpec, Verdict } from "./types";
 
@@ -20,12 +20,10 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     initTelegramWebApp();
-    fetchSampleStrategy()
-      .then((strategy) => setStrategyText(JSON.stringify(strategy, null, 2)))
-      .catch((fetchError) => setError(fetchError instanceof Error ? fetchError.message : "Unknown error"));
   }, []);
 
   const parsedStrategy = useMemo(() => {
@@ -44,6 +42,7 @@ function App() {
 
     setLoading(true);
     setError(null);
+    setSuccess(null);
     setReport(null);
     try {
       const nextReport = await runBacktest(parsedStrategy);
@@ -58,20 +57,31 @@ function App() {
   const handleImport = async () => {
     if (!strategyFile) {
       setError("Choose a file first");
+      setSuccess(null);
       return;
     }
 
     setImporting(true);
     setError(null);
+    setSuccess(null);
     setReport(null);
     try {
       const strategy = await importStrategy({ text: "", file: strategyFile });
       setStrategyText(JSON.stringify(strategy, null, 2));
+      setSuccess("Strategy loaded successfully");
     } catch (importError) {
       setError(importError instanceof Error ? importError.message : "Unknown error");
     } finally {
       setImporting(false);
     }
+  };
+
+  const handleFileChange = (file: File | null) => {
+    setStrategyFile(file);
+    setStrategyText("");
+    setReport(null);
+    setError(null);
+    setSuccess(null);
   };
 
   return (
@@ -93,7 +103,7 @@ function App() {
             <div className="panelHeader">
               <div>
                 <h2>StrategySpec</h2>
-                <span>{strategyFile ? strategyFile.name : parsedStrategy ? "valid JSON" : "JSON error"}</span>
+                <span>{strategyFile ? strategyFile.name : parsedStrategy ? "strategy loaded" : "no strategy loaded"}</span>
               </div>
               <div className="panelActions">
                 <label className="fileButton" title="Upload screenshot, PDF, or text file">
@@ -103,7 +113,7 @@ function App() {
                     className="fileInput"
                     type="file"
                     accept="image/*,application/pdf,text/*,application/json"
-                    onChange={(event) => setStrategyFile(event.target.files?.[0] ?? null)}
+                    onChange={(event) => handleFileChange(event.target.files?.[0] ?? null)}
                   />
                 </label>
                 <button
@@ -113,7 +123,7 @@ function App() {
                   title="Extract StrategySpec JSON"
                 >
                   {importing ? <RefreshCw className="spin" size={18} /> : <WandSparkles size={18} />}
-                  Extract JSON
+                  Load strategy
                 </button>
                 {parsedStrategy ? <CheckCircle2 size={20} /> : <ShieldAlert size={20} />}
               </div>
@@ -125,6 +135,13 @@ function App() {
               <div className="notice danger">
                 <AlertTriangle size={20} />
                 <span>{error}</span>
+              </div>
+            ) : null}
+
+            {success ? (
+              <div className="notice success">
+                <CheckCircle2 size={20} />
+                <span>{success}</span>
               </div>
             ) : null}
 
