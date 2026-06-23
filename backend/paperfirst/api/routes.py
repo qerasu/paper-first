@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from paperfirst.core.config import get_settings
-from paperfirst.domain.backtest import BacktestEngine, BacktestReport, BacktestRunRequest, build_demo_candles
+from paperfirst.domain.backtest import BacktestEngine, BacktestReport, BacktestRunRequest
 from paperfirst.domain.strategy import StrategySpec
 from paperfirst.services.gemini_strategy import (
     GeminiStrategyError,
@@ -15,6 +15,7 @@ from paperfirst.services.gemini_strategy import (
     import_strategy_with_gemini,
 )
 from paperfirst.services.jobs import enqueue_backtest
+from paperfirst.services.market_data import MarketDataError, resolve_backtest_candles
 from paperfirst.storage.models import BacktestJob, BacktestStatus, Strategy
 from paperfirst.storage.session import get_session
 
@@ -100,12 +101,18 @@ async def run_backtest(request: BacktestRunRequest, session: AsyncSession = Depe
         await session.commit()
         await session.refresh(job)
     except Exception:
-        return _run_backtest_now(request)
+        try:
+            return _run_backtest_now(request)
+        except MarketDataError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     try:
         enqueue_backtest(job.id, request, settings.redis_url)
     except Exception:
-        report = _build_backtest_report(request)
+        try:
+            report = _build_backtest_report(request)
+        except MarketDataError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
         job.status = BacktestStatus.completed.value
         job.report = report.model_dump(mode="json")
         job.error = None
@@ -140,11 +147,7 @@ def _run_backtest_now(request: BacktestRunRequest) -> BacktestJobResponse:
 
 
 def _build_backtest_report(request: BacktestRunRequest) -> BacktestReport:
-    candles = request.candles
-    if not candles and request.use_demo_data:
-        candles = build_demo_candles()
-
-    return BacktestEngine().run(request.strategy, candles)
+    return BacktestEngine().run(request.strategy, resolve_backtest_candles(request))
 
 
 def _upload_mime_type(file: UploadFile) -> str:

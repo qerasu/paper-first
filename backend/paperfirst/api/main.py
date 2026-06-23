@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     try:
-        # ponytail: create_all is enough until schema migrations exist.
         await create_tables()
     except Exception as exc:
         logger.warning("database startup skipped: %s", exc)

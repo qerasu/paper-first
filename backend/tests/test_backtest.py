@@ -1,12 +1,12 @@
 from datetime import UTC, datetime, timedelta
 
-from paperfirst.domain.backtest import BacktestEngine, Candle, build_demo_candles
+from paperfirst.domain.backtest import BacktestEngine, Candle
 from paperfirst.domain.strategy import ComparisonOperator, RiskSpec, SignalCondition, SignalGroup, StrategySpec, sample_strategy
 
 
-def test_backtest_runs_on_demo_data():
+def test_backtest_runs_on_candles():
     strategy = sample_strategy()
-    candles = build_demo_candles(points=120)
+    candles = _test_candles(points=120)
     report = BacktestEngine().run(strategy, candles)
 
     assert report.metrics.total_candles == 120
@@ -39,3 +39,18 @@ def test_forced_close_updates_final_drawdown_after_exit_costs():
     expected_drawdown = (strategy.risk.initial_capital - report.equity_curve[-1].equity) / strategy.risk.initial_capital * 100
 
     assert report.metrics.max_drawdown_pct == round(expected_drawdown, 4)
+
+
+def _test_candles(points: int) -> list[Candle]:
+    started_at = datetime(2026, 1, 1, tzinfo=UTC)
+    return [
+        Candle(
+            timestamp=started_at + timedelta(hours=index),
+            open=100 + index,
+            high=101 + index,
+            low=99 + index,
+            close=100.5 + index,
+            volume=1_000 + index,
+        )
+        for index in range(points)
+    ]

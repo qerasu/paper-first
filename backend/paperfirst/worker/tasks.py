@@ -2,7 +2,8 @@ import asyncio
 from datetime import UTC, datetime
 from uuid import UUID
 
-from paperfirst.domain.backtest import BacktestEngine, BacktestRunRequest, build_demo_candles
+from paperfirst.domain.backtest import BacktestEngine, BacktestRunRequest
+from paperfirst.services.market_data import resolve_backtest_candles
 from paperfirst.storage.models import BacktestJob, BacktestStatus
 from paperfirst.storage.session import SessionLocal
 
@@ -26,13 +27,7 @@ async def _run_backtest_job(payload):
         await session.commit()
 
         try:
-            candles = request.candles
-            if not candles and request.use_demo_data:
-                candles = build_demo_candles()
-            if not candles:
-                raise ValueError("candles are required unless use_demo_data=true")
-
-            report = BacktestEngine().run(request.strategy, candles)
+            report = BacktestEngine().run(request.strategy, resolve_backtest_candles(request))
         except Exception as exc:
             job.status = BacktestStatus.failed.value
             job.error = str(exc)
