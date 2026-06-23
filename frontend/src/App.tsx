@@ -159,7 +159,7 @@ function EmptyReport() {
     <div className="emptyState">
       <ShieldAlert size={32} />
       <h2>The report will appear after launch</h2>
-      <p>The MVP uses built-in demo candle history to test the pipeline without connecting an exchange.</p>
+      <p>The MVP loads live Coinbase candles for the strategy symbol and timeframe.</p>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
-from math import cos, isfinite, sin
+from datetime import datetime
+from math import isfinite
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -331,31 +331,6 @@ class BacktestEngine:
         if metrics.trade_count >= 20 and metrics.net_profit_pct > 5 and metrics.max_drawdown_pct < strategy.risk.max_drawdown_pct / 2:
             return Verdict.paper, "strategy is eligible for paper-forward testing", warnings
         return Verdict.research, "strategy needs more robustness checks", warnings
-
-
-def build_demo_candles(points: int = 240) -> list[Candle]:
-    candles = []
-    price = 100.0
-    started_at = datetime.now(UTC) - timedelta(hours=points)
-    for index in range(points):
-        drift = sin(index / 8) * 0.35 + cos(index / 19) * 0.22 + 0.03
-        open_price = price
-        close_price = max(1.0, open_price * (1 + drift / 100))
-        high_price = max(open_price, close_price) * (1 + 0.003)
-        low_price = min(open_price, close_price) * (1 - 0.003)
-        volume = 1_000 + 150 * sin(index / 11)
-        candles.append(
-            Candle(
-                timestamp=started_at + timedelta(hours=index),
-                open=round(open_price, 6),
-                high=round(high_price, 6),
-                low=round(low_price, 6),
-                close=round(close_price, 6),
-                volume=round(volume, 6),
-            )
-        )
-        price = close_price
-    return candles
 
 
 def _period_from_token(token: str) -> int:

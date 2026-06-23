@@ -13,6 +13,7 @@ Telegram Mini App и backend для аудита торговых стратег
 - Worker: RQ + Redis
 - DB: PostgreSQL
 - Frontend: React + Vite + TypeScript
+- Market data: Coinbase Exchange candles
 - Strategy format: JSON `StrategySpec`, без исполнения произвольного Python
 
 ## Локальный запуск
@@ -103,7 +104,7 @@ python3 start.py --all
 
 Mini App принимает источник стратегии файлом: текст, JSON, PDF или изображение. Кнопка `Load strategy` вызывает `POST /api/strategy/import` и загружает извлеченный `StrategySpec`.
 
-Кнопка `Run audit` запускает `POST /api/backtests/run` с `use_demo_data=true` после успешной загрузки стратегии, затем опрашивает статус job и показывает verdict, метрики, equity curve, предупреждения и последние сделки.
+Кнопка `Run audit` запускает `POST /api/backtests/run`, затем опрашивает статус job и показывает verdict, метрики, equity curve, предупреждения и последние сделки. Если `candles=[]`, backend загружает live-свечи Coinbase для `symbol` и `timeframe` из стратегии.
 
 ## API
 
@@ -116,7 +117,7 @@ Mini App принимает источник стратегии файлом: т
 
 `POST /api/strategy/import` принимает `multipart/form-data` с полями `text` и/или `file` и требует `PAPERFIRST_GEMINI_API_KEY`. Текстовые файлы и JSON объединяются с `text`; PDF и изображения передаются в Gemini inline. Лимит inline-файла: 12 MB. Gemini должен вернуть JSON со всеми группами сигналов `entry.all`, `entry.any`, `exit.all`, `exit.any` и всеми risk-полями.
 
-`POST /api/backtests/run` создает job в Postgres и кладет расчет в Redis/RQ. Отчет забирается через `GET /api/backtests/{job_id}`. Если `candles=[]` и `use_demo_data=true`, worker использует синтетическую историю свечей.
+`POST /api/backtests/run` создает job в Postgres и кладет расчет в Redis/RQ. Отчет забирается через `GET /api/backtests/{job_id}`. Если `candles=[]` и `use_demo_data=true`, worker загружает последние live-свечи Coinbase. Имя `use_demo_data` осталось от раннего MVP и сейчас означает "автоматически взять рыночные свечи, если они не переданы". Поддерживаются таймфреймы `1m`, `5m`, `15m`, `1h`, `6h`, `1d`; для остальных нужно передать `candles` явно.
 
 ## Проверки
 
