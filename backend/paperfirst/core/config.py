@@ -35,7 +35,6 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://paperfirst:paperfirst@localhost:5432/paperfirst"
     redis_url: str = "redis://localhost:6379/0"
     telegram_bot_token: str | None = None
-    telegram_bot_username: str | None = None
     telegram_web_app_url: str = "http://localhost:5173"
     backend_cors_origins: str = "http://localhost:5173"
     gemini_api_key: str | None = None
