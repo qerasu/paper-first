@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    allowedHosts: [".loca.lt"], // not needed in case of using render
+    allowedHosts: [".trycloudflare.com"],
     proxy: {
       "/api": "http://api:8000"
     }
